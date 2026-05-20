@@ -1,0 +1,275 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1571.vb_423c255d6d9">
+  <actions/>
+  <description>Execute Multiple plans in parallel</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>3</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+        <removeLastBuild>false</removeLastBuild>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.9.13">
+      <gitLabConnection>GitLabOxfordConnextion</gitLabConnection>
+      <jobCredentialId></jobCredentialId>
+      <useAlternativeCredential>false</useAlternativeCredential>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@338.va_0a_b_50e29397">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>Project</name>
+          <description>Select the Project</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>ln-ia-testscripts</string>
+              <string>ln-ia-testscripts-0.2</string>
+              <string>ln-ia-testscripts-0.3</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>Industry</name>
+          <description>Select the industry</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>INE</string>
+              <string>AUT</string>
+              <string>ADC</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>Plan_Path</name>
+          <description>To Select the required Path</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>standard/industries/automotive/plans/</string>
+              <string>standard/industries/industrialEnterprise/plans/</string>
+              <string>standard/industries/industrialEnterprise/plans2/</string>
+              <string>plan/</string>
+              <string>ln/Common/plan/</string>
+              <string>standard/industries/processMining/plans/</string>
+              <string>standard/industries/aerospaceDefense/plans/</string>
+              <string>standard/industries/aerospaceDefense/plans2/</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>PublishToDB</name>
+          <description>Select &apos;True&apos; if you want the results pushed to DB; leave it &apos;False&apos; for a dry‑run.</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>false</string>
+              <string>true</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4275.vb_0565eb_a_3d36">
+    <script>def CONFIG = [
+  &apos;ln-ia-testscripts-0.2&apos;: [
+    downstreamJob: &apos;2_RunTestPlanForS3Jar&apos;,
+    industries: [
+      INE: [
+        &apos;INE_AE_ImportExport&apos;,
+        &apos;INE_ContractToCash_1&apos;,
+        &apos;INE_ContractToCash_2&apos;,
+     //   &apos;INE_DELTA&apos;,
+        &apos;INE_DesignToRelease&apos;,
+      //  &apos;INE_ESignature&apos;,
+        &apos;INE_FinancialPlanToReport&apos;,
+        &apos;INE_FT_Maintenance_1&apos;,
+        &apos;INE_FT_Maintenance_2&apos;,
+      //  &apos;INE_FT_Manual&apos;,
+        &apos;INE_HoursToAccount&apos;,
+        &apos;INE_InternalMaintenanceToClose&apos;,
+       // &apos;INE_IssueToResolution_Manual&apos;,
+        &apos;INE_IssueToResolution&apos;,
+        &apos;INE_MarketToOrder&apos;,
+      //  &apos;INE_ONLY_MONTHLY&apos;,
+        &apos;INE_OrderToCash_1&apos;,
+        &apos;INE_OrderToCash_2&apos;,
+        &apos;INE_OrderToCash_3&apos;,
+       // &apos;INE_OrderToCash_Manual&apos;,
+        &apos;INE_PlanToDeliver_1&apos;,
+        &apos;INE_PlanToDeliver_2&apos;,
+      //  &apos;INE_PlanToDeliver_Manual_1&apos;,
+       // &apos;INE_PlanToDeliver_Manual_2&apos;,
+        &apos;INE_ProcureToPay_1&apos;,
+        &apos;INE_ProcureToPay_2_5&apos;,
+        &apos;INE_ProcureToPay_6&apos;,
+        &apos;INE_ProcureToPay_7&apos;,
+        &apos;INE_ProcureToPay_8&apos;,
+       // &apos;INE_ProcureToPay_Manual&apos;,
+        &apos;INE_ProjectToCost_1&apos;,
+      //  &apos;INE_ProjectToCost_Manual&apos;,
+        &apos;INE_RecordToReport_1&apos;,
+        &apos;INE_RecordToReport_2&apos;,
+        &apos;INE_RecordToReport_3&apos;,
+       // &apos;INE_RecordToReport_Manual&apos;,
+        &apos;INE_RiskAndCompliance&apos;,
+        &apos;INE_SalesServiceToClose&apos;,
+      //  &apos;INE_SE_Maintenance_1&apos;,
+       // &apos;INE_SE_Maintenance_2&apos;,
+       // &apos;INE_SE_Manual&apos;,
+       // &apos;INE_SE_MonthlyRun_1&apos;,
+       // &apos;INE_SE_MonthlyRun_2&apos;,
+        &apos;INE_ServiceToCash&apos;,
+        &apos;INE_YearlyRun&apos;
+      ],
+      AUT: [
+          &apos;AUT_FinancialPlanToReport_1&apos;,
+          &apos;AUT_FinancialPlanToReport_2&apos;,
+          &apos;AUT_FinancialPlanToReport_3&apos;,
+          &apos;AUT_ContractToCash_1&apos;,
+          &apos;AUT_ContractToCash_2&apos;,
+          &apos;AUT_DesignToRelease&apos;,
+          &apos;AUT_HoursToAccount&apos;,
+          &apos;AUT_IssueToResolution_1&apos;,
+          &apos;AUT_OrderToCash_1&apos;,
+          &apos;AUT_OrderToCash_2&apos;,
+          &apos;AUT_OrderToCash_3&apos;,
+          &apos;AUT_OrderToCash_4&apos;,
+          &apos;AUT_PlanToDeliver_1&apos;,
+          &apos;AUT_PlanToDeliver_2&apos;,
+          &apos;AUT_ProcureToPay_1&apos;,
+          &apos;AUT_ProcureToPay_2&apos;,
+          &apos;AUT_ProcureToPay_3&apos;,
+          &apos;AUT_MarketToOrder_1&apos;,
+          &apos;AUT_ServiceToCash&apos;,
+          &apos;AUT_RequirementToDesign&apos;,
+          &apos;AUT_RiskAndCompliance&apos;,
+          &apos;AUT_OrderToCash_Sequencial&apos;,
+          &apos;AUT_AutomotiveExchange_1&apos;,
+          &apos;AUT_FT_Maintenance_1&apos;
+      ],
+      ADC: [
+        &apos;ADC_HoursToAccount&apos;,
+        &apos;ADC_BidToContract&apos;,
+        &apos;ADC_ContractToCash_1&apos;,
+        &apos;ADC_ContractToCash_2&apos;,
+        &apos;ADC_DesignToRelease&apos;,
+        &apos;ADC_IssueToResolution&apos;,
+        &apos;ADC_OrderToCash_1&apos;,
+        &apos;ADC_OrderToCash_2&apos;,
+        &apos;ADC_OrderToCash_3&apos;,
+        &apos;ADC_OrderToCash_4&apos;,
+        &apos;ADC_PlanToDeliver_1&apos;,
+        &apos;ADC_RiskAndCompliance&apos;,
+        &apos;ADC_AftermarketServiceAndMRO&apos;,
+        &apos;ADC_SourceToPay_1&apos;,
+        &apos;ADC_ProgramToProfit_1&apos;
+      ]
+    ]
+  ],
+
+  &apos;ln-ia-testscripts-0.3&apos;: [
+    downstreamJob: &apos;2_RunTestPlanForS3Jar&apos;,
+    industries: [
+      INE: [
+         &apos;INE_AE_ImportExport&apos;,
+        &apos;INE_ContractToCash_1&apos;,
+        &apos;INE_ContractToCash_2&apos;,
+     //   &apos;INE_DELTA&apos;,
+        &apos;INE_DesignToRelease&apos;,
+      //  &apos;INE_ESignature&apos;,
+        &apos;INE_FinancialPlanToReport&apos;,
+        &apos;INE_FT_Maintenance_1&apos;,
+        &apos;INE_FT_Maintenance_2&apos;,
+      //  &apos;INE_FT_Manual&apos;,
+        &apos;INE_HoursToAccount&apos;,
+        &apos;INE_InternalMaintenanceToClose&apos;,
+       // &apos;INE_IssueToResolution_Manual&apos;,
+        &apos;INE_IssueToResolution&apos;,
+        &apos;INE_MarketToOrder&apos;,
+      //  &apos;INE_ONLY_MONTHLY&apos;,
+        &apos;INE_OrderToCash_1&apos;,
+        &apos;INE_OrderToCash_2&apos;,
+        &apos;INE_OrderToCash_3&apos;,
+       // &apos;INE_OrderToCash_Manual&apos;,
+        &apos;INE_PlanToDeliver_1&apos;,
+        &apos;INE_PlanToDeliver_2&apos;,
+      //  &apos;INE_PlanToDeliver_Manual_1&apos;,
+       // &apos;INE_PlanToDeliver_Manual_2&apos;,
+        &apos;INE_ProcureToPay_1&apos;,
+        &apos;INE_ProcureToPay_2_5&apos;,
+        &apos;INE_ProcureToPay_6&apos;,
+        &apos;INE_ProcureToPay_7&apos;,
+        &apos;INE_ProcureToPay_8&apos;,
+       // &apos;INE_ProcureToPay_Manual&apos;,
+        &apos;INE_ProjectToCost_1&apos;,
+      //  &apos;INE_ProjectToCost_Manual&apos;,
+        &apos;INE_RecordToReport_1&apos;,
+        &apos;INE_RecordToReport_2&apos;,
+        &apos;INE_RecordToReport_3&apos;,
+       // &apos;INE_RecordToReport_Manual&apos;,
+        &apos;INE_RiskAndCompliance&apos;,
+        &apos;INE_SalesServiceToClose&apos;,
+      //  &apos;INE_SE_Maintenance_1&apos;,
+       // &apos;INE_SE_Maintenance_2&apos;,
+       // &apos;INE_SE_Manual&apos;,
+       // &apos;INE_SE_MonthlyRun_1&apos;,
+       // &apos;INE_SE_MonthlyRun_2&apos;,
+        &apos;INE_ServiceToCash&apos;
+      ],
+      AUT: [
+        &apos;Temp_Akshaya&apos;,
+        &apos;PlaywrightGridTest&apos;
+      ],
+      ADC: [
+        &apos;ADC_PW_Plan_1&apos;
+      ]
+    ]
+  ]
+]
+
+node {
+
+    echo &quot;Project  : ${params.Project}&quot;
+    echo &quot;Industry : ${params.Industry}&quot;
+    echo &quot;PlanPath : ${params.Plan_Path}&quot;
+
+    def projectConfig = CONFIG[params.Project]
+    if (!projectConfig) {
+        error &quot;Invalid Project selected: ${params.Project}&quot;
+    }
+
+    def plans = projectConfig.industries[params.Industry]
+    if (!plans || plans.isEmpty()) {
+        error &quot;No plans mapped for Industry=${params.Industry} in Project=${params.Project}&quot;
+    }
+
+    def jobName = projectConfig.downstreamJob
+    def parallelJobs = [:]
+    def emailId = env.BUILD_USER_EMAIL ?: &apos;sampath.sankati@infor.com&apos;
+
+    plans.eachWithIndex { plan, index -&gt;
+        parallelJobs[&quot;${params.Industry}-Build-${index + 1}&quot;] = {
+            build job: jobName, parameters: [
+                string(name: &apos;Email_Id&apos;, value: emailId),
+                string(name: &apos;Test_Plan&apos;, value: plan),
+                string(name: &apos;Industry&apos;, value: params.Industry),
+                string(name: &apos;Project&apos;, value: params.Project),
+                string(name: &apos;Plan_Path&apos;, value: params.Plan_Path),
+                string(name: &apos;PublishToDB&apos;, value: params.PublishToDB)
+            ]
+        }
+    }
+
+    parallel parallelJobs
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

@@ -1,0 +1,17 @@
+=========================================
+JENKINS JOB CONFIGURATION DOCUMENTATION
+=========================================
+
+## Description:
+Downloads HTML reports from S3 bucket
+
+## Job Parameters / Input Variables:
+ - Parameter Name: Project (Default: None)
+ - Parameter Name: Report (Default: None)
+
+## Build Execution Steps:
+### Step 1: Shell Command Script
+```bash
+aws s3 cp s3://ipc-bucket/test-reports/com/infor/test/$Project/$Report .
+```
+

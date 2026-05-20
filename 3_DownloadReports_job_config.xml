@@ -1,0 +1,120 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <description>Downloads HTML reports from S3 bucket</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>2</daysToKeep>
+        <numToKeep>-1</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+        <removeLastBuild>false</removeLastBuild>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.9.13">
+      <gitLabConnection>GitLabOxfordConnextion</gitLabConnection>
+      <jobCredentialId></jobCredentialId>
+      <useAlternativeCredential>false</useAlternativeCredential>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@338.va_0a_b_50e29397">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.8">
+          <name>Project</name>
+          <description>Select Project folder</description>
+          <randomName>choice-parameter-4073731138342</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1385.v7d2d9ec4d909">
+              <script>return[&apos;ln-ia-testscripts-0.1&apos;, &apos;ln-ia-testscripts-0.2&apos;, &apos;ln-ia-testscripts-0.3&apos;]</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1385.v7d2d9ec4d909">
+              <script>return[&apos;Error&apos;]</script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>3_DownloadReports</projectName>
+          <projectFullName>3_DownloadReports</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters></referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.8">
+          <name>Report</name>
+          <description>Select the report to be downloaded</description>
+          <randomName>choice-parameter-4074248611847</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1385.v7d2d9ec4d909">
+              <script>
+if(Project.equals(&quot;ln-ia-testscripts-0.1&quot;)){
+def s3_path = &quot;s3://ipc-bucket/test-reports/com/infor/test/ln-ia-testscripts-0.1/&quot;
+def aws_s3_ls_output = &quot;aws s3 ls ${s3_path} --region us-east-1&quot;.execute() \
+                       | [&apos;awk&apos;, &apos;{ print $NF }&apos;].execute()
+//aws_s3_ls_output.waitFor() // might be needed if execution is too long
+def files = aws_s3_ls_output.text.tokenize().reverse()
+
+return files
+}
+
+if(Project.equals(&quot;ln-ia-testscripts-0.2&quot;)){
+def s3_path = &quot;s3://ipc-bucket/test-reports/com/infor/test/ln-ia-testscripts-0.2/&quot;
+def aws_s3_ls_output = &quot;aws s3 ls ${s3_path} --region us-east-1&quot;.execute() \
+                       | [&apos;awk&apos;, &apos;{ print $NF }&apos;].execute()
+//aws_s3_ls_output.waitFor() // might be needed if execution is too long
+def files = aws_s3_ls_output.text.tokenize().reverse()
+
+return files
+}
+
+if(Project.equals(&quot;ln-ia-testscripts-0.3&quot;)){
+def s3_path = &quot;s3://ipc-bucket/test-reports/com/infor/test/ln-ia-testscripts-0.3/&quot;
+def aws_s3_ls_output = &quot;aws s3 ls ${s3_path} --region us-east-1&quot;.execute() \
+                       | [&apos;awk&apos;, &apos;{ print $NF }&apos;].execute()
+//aws_s3_ls_output.waitFor() // might be needed if execution is too long
+def files = aws_s3_ls_output.text.tokenize().reverse()
+
+return files
+}</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1385.v7d2d9ec4d909">
+              <script>return[&apos;Error&apos;]</script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>3_DownloadReports</projectName>
+          <projectFullName>3_DownloadReports</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>Project</referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>true</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>aws s3 cp s3://ipc-bucket/test-reports/com/infor/test/$Project/$Report .
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

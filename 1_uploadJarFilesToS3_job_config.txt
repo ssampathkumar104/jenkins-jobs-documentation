@@ -1,0 +1,30 @@
+=========================================
+JENKINS JOB CONFIGURATION DOCUMENTATION
+=========================================
+
+## Description:
+upload ln-ia-testscripts-0.2 & 0.3/inforTestAutomation Jar Files To S3
+
+## Job Parameters / Input Variables:
+ - Parameter Name: Repository (Default: None)
+ - Parameter Name: Project (Default: None)
+ - Parameter Name: Branch (Default: None)
+
+## Build Execution Steps:
+### Step 1: Shell Command Script
+```bash
+branch="$Branch"
+whoami
+mvn --version
+java --version
+cd $Project
+mvn clean install -DskipTests
+
+groupId="$(xml_grep '/project/groupId' pom.xml --text_only | tr '.' '/')"
+artifactId="$(xml_grep '/project/artifactId' pom.xml --text_only)"
+versionNumber="$(xml_grep '/project/version' pom.xml --text_only)"
+
+aws s3 cp target/ s3://ipc-bucket/infor-artifact/$groupId/$artifactId/$branch/$versionNumber --recursive --exclude "*" --include "*.jar"
+aws s3 cp pom.xml s3://ipc-bucket/infor-artifact/$groupId/$artifactId/$branch/$versionNumber/pom.xml
+```
+

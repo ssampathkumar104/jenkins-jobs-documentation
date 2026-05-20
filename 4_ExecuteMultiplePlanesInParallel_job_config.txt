@@ -1,0 +1,209 @@
+=========================================
+JENKINS JOB CONFIGURATION DOCUMENTATION
+=========================================
+
+## Description:
+Execute Multiple plans in parallel
+
+## Job Parameters / Input Variables:
+ - Parameter Name: Project (Default: None)
+ - Parameter Name: Industry (Default: None)
+ - Parameter Name: Plan_Path (Default: None)
+ - Parameter Name: PublishToDB (Default: None)
+
+## Build Execution Steps:
+### Pipeline Groovy Script:
+```groovy
+def CONFIG = [
+  'ln-ia-testscripts-0.2': [
+    downstreamJob: '2_RunTestPlanForS3Jar',
+    industries: [
+      INE: [
+        'INE_AE_ImportExport',
+        'INE_ContractToCash_1',
+        'INE_ContractToCash_2',
+     //   'INE_DELTA',
+        'INE_DesignToRelease',
+      //  'INE_ESignature',
+        'INE_FinancialPlanToReport',
+        'INE_FT_Maintenance_1',
+        'INE_FT_Maintenance_2',
+      //  'INE_FT_Manual',
+        'INE_HoursToAccount',
+        'INE_InternalMaintenanceToClose',
+       // 'INE_IssueToResolution_Manual',
+        'INE_IssueToResolution',
+        'INE_MarketToOrder',
+      //  'INE_ONLY_MONTHLY',
+        'INE_OrderToCash_1',
+        'INE_OrderToCash_2',
+        'INE_OrderToCash_3',
+       // 'INE_OrderToCash_Manual',
+        'INE_PlanToDeliver_1',
+        'INE_PlanToDeliver_2',
+      //  'INE_PlanToDeliver_Manual_1',
+       // 'INE_PlanToDeliver_Manual_2',
+        'INE_ProcureToPay_1',
+        'INE_ProcureToPay_2_5',
+        'INE_ProcureToPay_6',
+        'INE_ProcureToPay_7',
+        'INE_ProcureToPay_8',
+       // 'INE_ProcureToPay_Manual',
+        'INE_ProjectToCost_1',
+      //  'INE_ProjectToCost_Manual',
+        'INE_RecordToReport_1',
+        'INE_RecordToReport_2',
+        'INE_RecordToReport_3',
+       // 'INE_RecordToReport_Manual',
+        'INE_RiskAndCompliance',
+        'INE_SalesServiceToClose',
+      //  'INE_SE_Maintenance_1',
+       // 'INE_SE_Maintenance_2',
+       // 'INE_SE_Manual',
+       // 'INE_SE_MonthlyRun_1',
+       // 'INE_SE_MonthlyRun_2',
+        'INE_ServiceToCash',
+        'INE_YearlyRun'
+      ],
+      AUT: [
+          'AUT_FinancialPlanToReport_1',
+          'AUT_FinancialPlanToReport_2',
+          'AUT_FinancialPlanToReport_3',
+          'AUT_ContractToCash_1',
+          'AUT_ContractToCash_2',
+          'AUT_DesignToRelease',
+          'AUT_HoursToAccount',
+          'AUT_IssueToResolution_1',
+          'AUT_OrderToCash_1',
+          'AUT_OrderToCash_2',
+          'AUT_OrderToCash_3',
+          'AUT_OrderToCash_4',
+          'AUT_PlanToDeliver_1',
+          'AUT_PlanToDeliver_2',
+          'AUT_ProcureToPay_1',
+          'AUT_ProcureToPay_2',
+          'AUT_ProcureToPay_3',
+          'AUT_MarketToOrder_1',
+          'AUT_ServiceToCash',
+          'AUT_RequirementToDesign',
+          'AUT_RiskAndCompliance',
+          'AUT_OrderToCash_Sequencial',
+          'AUT_AutomotiveExchange_1',
+          'AUT_FT_Maintenance_1'
+      ],
+      ADC: [
+        'ADC_HoursToAccount',
+        'ADC_BidToContract',
+        'ADC_ContractToCash_1',
+        'ADC_ContractToCash_2',
+        'ADC_DesignToRelease',
+        'ADC_IssueToResolution',
+        'ADC_OrderToCash_1',
+        'ADC_OrderToCash_2',
+        'ADC_OrderToCash_3',
+        'ADC_OrderToCash_4',
+        'ADC_PlanToDeliver_1',
+        'ADC_RiskAndCompliance',
+        'ADC_AftermarketServiceAndMRO',
+        'ADC_SourceToPay_1',
+        'ADC_ProgramToProfit_1'
+      ]
+    ]
+  ],
+
+  'ln-ia-testscripts-0.3': [
+    downstreamJob: '2_RunTestPlanForS3Jar',
+    industries: [
+      INE: [
+         'INE_AE_ImportExport',
+        'INE_ContractToCash_1',
+        'INE_ContractToCash_2',
+     //   'INE_DELTA',
+        'INE_DesignToRelease',
+      //  'INE_ESignature',
+        'INE_FinancialPlanToReport',
+        'INE_FT_Maintenance_1',
+        'INE_FT_Maintenance_2',
+      //  'INE_FT_Manual',
+        'INE_HoursToAccount',
+        'INE_InternalMaintenanceToClose',
+       // 'INE_IssueToResolution_Manual',
+        'INE_IssueToResolution',
+        'INE_MarketToOrder',
+      //  'INE_ONLY_MONTHLY',
+        'INE_OrderToCash_1',
+        'INE_OrderToCash_2',
+        'INE_OrderToCash_3',
+       // 'INE_OrderToCash_Manual',
+        'INE_PlanToDeliver_1',
+        'INE_PlanToDeliver_2',
+      //  'INE_PlanToDeliver_Manual_1',
+       // 'INE_PlanToDeliver_Manual_2',
+        'INE_ProcureToPay_1',
+        'INE_ProcureToPay_2_5',
+        'INE_ProcureToPay_6',
+        'INE_ProcureToPay_7',
+        'INE_ProcureToPay_8',
+       // 'INE_ProcureToPay_Manual',
+        'INE_ProjectToCost_1',
+      //  'INE_ProjectToCost_Manual',
+        'INE_RecordToReport_1',
+        'INE_RecordToReport_2',
+        'INE_RecordToReport_3',
+       // 'INE_RecordToReport_Manual',
+        'INE_RiskAndCompliance',
+        'INE_SalesServiceToClose',
+      //  'INE_SE_Maintenance_1',
+       // 'INE_SE_Maintenance_2',
+       // 'INE_SE_Manual',
+       // 'INE_SE_MonthlyRun_1',
+       // 'INE_SE_MonthlyRun_2',
+        'INE_ServiceToCash'
+      ],
+      AUT: [
+        'Temp_Akshaya',
+        'PlaywrightGridTest'
+      ],
+      ADC: [
+        'ADC_PW_Plan_1'
+      ]
+    ]
+  ]
+]
+
+node {
+
+    echo "Project  : ${params.Project}"
+    echo "Industry : ${params.Industry}"
+    echo "PlanPath : ${params.Plan_Path}"
+
+    def projectConfig = CONFIG[params.Project]
+    if (!projectConfig) {
+        error "Invalid Project selected: ${params.Project}"
+    }
+
+    def plans = projectConfig.industries[params.Industry]
+    if (!plans || plans.isEmpty()) {
+        error "No plans mapped for Industry=${params.Industry} in Project=${params.Project}"
+    }
+
+    def jobName = projectConfig.downstreamJob
+    def parallelJobs = [:]
+    def emailId = env.BUILD_USER_EMAIL ?: 'sampath.sankati@infor.com'
+
+    plans.eachWithIndex { plan, index ->
+        parallelJobs["${params.Industry}-Build-${index + 1}"] = {
+            build job: jobName, parameters: [
+                string(name: 'Email_Id', value: emailId),
+                string(name: 'Test_Plan', value: plan),
+                string(name: 'Industry', value: params.Industry),
+                string(name: 'Project', value: params.Project),
+                string(name: 'Plan_Path', value: params.Plan_Path),
+                string(name: 'PublishToDB', value: params.PublishToDB)
+            ]
+        }
+    }
+
+    parallel parallelJobs
+}
+```

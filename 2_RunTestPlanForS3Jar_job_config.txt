@@ -1,0 +1,216 @@
+=========================================
+JENKINS JOB CONFIGURATION DOCUMENTATION
+=========================================
+
+## Description:
+Execution of test plan from S3 Jar Files
+
+
+## Job Parameters / Input Variables:
+ - Parameter Name: Project (Default: None)
+ - Parameter Name: Plan_Path (Default: None)
+ - Parameter Name: Test_Plan (Default: PlaywrightPOC)
+ - Parameter Name: Email_Id (Default: None)
+ - Parameter Name: PublishToDB (Default: None)
+ - Parameter Name: Branch (Default: None)
+
+## Build Execution Steps:
+### Step 1: Shell Command Script
+```bash
+echo "Host IP : $(curl http://checkip.amazonaws.com)"
+# Instance‑ID of the *same* EC2 host
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+echo "Instance ID : $INSTANCE_ID"
+java --version
+ 
+# docker info
+docker-compose --version
+groups $(whoami) 
+sudo usermod -aG docker $(whoami)
+
+if [[ "$PublishToDB" == "true" ]]; then
+    echo "Killing any previous Spring Boot app instance..."
+    pkill -f ica-test-reporting-0.0.1-SNAPSHOT.jar || true
+    
+    aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/testautomation/ica-test-reporting/0.0.10/0.0.1-SNAPSHOT/ica-test-reporting-0.0.1-SNAPSHOT.jar .
+
+    echo "Starting Spring Boot app in background..."
+    #nohup java -jar ica-test-reporting-0.0.1-SNAPSHOT.jar > springbootApp.log 2>&1 &
+    java -DEC2_INSTANCE_ID="$INSTANCE_ID" -jar ica-test-reporting-0.0.1-SNAPSHOT.jar > springbootApp.log 2>&1 &
+    sleep 5
+    echo "Spring Boot app started. Running next Java command..."
+fi
+```
+
+### Step 2: Shell Command Script
+```bash
+# Present Working Directory
+pwd
+# Create required directories
+mkdir -p OutputData Reports downloads lib lib-pw 
+chmod 777 ./downloads
+chown ec2-user:ec2-user /home/ec2-user/jenkins_tmp
+# Sync libraries from S3
+aws s3 sync s3://ipc-bucket/lib/ ./lib
+aws s3 sync s3://ipc-bucket/lib-pw/ ./lib-pw
+
+# Copy helper scripts
+cp /home/ec2-user/wait-for-containers.sh .
+cp /home/ec2-user/waitForDockerToBeActive.sh .
+cp /home/ec2-user/waitForContainerDToBeActive.sh .
+aws s3 cp s3://ipc-bucket/dockerComposeFiles/waitForGridToBeReady.sh .
+sudo dos2unix waitForGridToBeReady.sh
+sudo chmod +x waitForGridToBeReady.sh
+
+# Download docker compose file
+aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/testautomation/inforTestAutomation/0.0.10/0.0.10/inforTestAutomation-0.0.10.jar ./lib/.
+#aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/testautomation/inforTestAutomation-pw/0.0.10/0.0.1/inforTestAutomation-pw-0.0.1.jar ./lib-pw/.
+aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/testautomation/inforTestAutomation-pw/0.0.11/0.0.2/inforTestAutomation-pw-0.0.2.jar ./lib-pw/.
+
+aws s3 cp s3://ipc-bucket/compose7.yml .
+
+branch="$Branch"
+
+# Project-specific artifact logic
+if [ "$Project" == 'ln-ia-testscripts' ]; then
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.1/newBranch/0.0.1-SNAPSHOT/ln-ia-testscripts-0.1-0.0.1-SNAPSHOT.jar .
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.1/newBranch/0.0.1-SNAPSHOT/pom.xml .
+  jar xf ln-ia-testscripts-0.1-0.0.1-SNAPSHOT.jar
+fi
+
+if [ "$Project" == 'ln-ia-testscripts-0.2' ]; then
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.2/$branch/0.0.2-SNAPSHOT/ln-ia-testscripts-0.2-0.0.2-SNAPSHOT.jar .
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.2/$branch/0.0.2-SNAPSHOT/pom.xml .
+  jar xf ln-ia-testscripts-0.2-0.0.2-SNAPSHOT.jar
+fi
+
+if [ "$Project" == 'ln-ia-testscripts-0.3' ]; then
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.3/21.10.2025/0.0.2-SNAPSHOT/ln-ia-testscripts-0.3-0.0.2-SNAPSHOT.jar .
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.3/21.10.2025/0.0.2-SNAPSHOT/pom.xml .
+  jar xf ln-ia-testscripts-0.3-0.0.2-SNAPSHOT.jar
+fi
+
+if [ "$Project" == 'xylem-testscripts-pw' ]; then
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/xylem-testscripts-pw/main/0.0.2-SNAPSHOT/xylem-testscripts-pw-0.0.2-SNAPSHOT.jar .
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/xylem-testscripts-pw/main/0.0.2-SNAPSHOT/pom.xml .
+  jar xf xylem-testscripts-pw-0.0.2-SNAPSHOT.jar
+fi
+```
+
+### Step 3: Shell Command Script
+```bash
+echo "Restarting containerd..."
+whoami
+#sudo systemctl restart containerd
+sudo systemctl is-active containerd || sudo systemctl start containerd
+sleep 60
+echo "Waiting for containerd to be active..."
+timeout 180 ./waitForContainerDToBeActive.sh 
+
+echo "Restarting Docker..."
+#sudo systemctl restart docker
+sudo systemctl is-active docker || sudo systemctl start docker
+sleep 60
+echo "Waiting for Docker to be active..."
+timeout 180 ./waitForDockerToBeActive.sh
+
+echo "Final status check:"
+sudo systemctl status docker
+sudo systemctl status containerd
+
+
+COMPOSE_FILE="compose7.yml"
+sudo docker-compose -f "$COMPOSE_FILE" down -v
+## Select yml based on the project
+if [ "$Project" == "ln-ia-testscripts" ] || [ "$Project" == "ln-ia-testscripts-0.2" ]; then
+#  COMPOSE_FILE="dockerCompose2_New.yml"
+#  COMPOSE_FILE="docker-compose-full-distributed-grid-pw-3.yml"
+  EXECUTION_TYPE="SELENIUM"
+  CLASSPATH=".:lib/*"
+  REMOTE="true"
+  
+fi
+
+if [ "$Project" == 'ln-ia-testscripts-0.3' ]; then
+  #COMPOSE_FILE="docker-compose-full-distributed-grid-pw-3.yml"
+  EXECUTION_TYPE="PLAYWRIGHT"
+  CLASSPATH=".:lib-pw/*"
+  REMOTE="false"
+fi
+
+echo "Execution Type  : $EXECUTION_TYPE"
+echo "Classpath       : $CLASSPATH"
+
+### Removes the containers that are in exited state & created but not started state.
+sudo docker ps -a
+containers=$(docker ps -a -f status=exited -f status=created -q)
+if [ -n "$containers" ]; then
+  docker rm $containers
+else
+  echo "No containers to remove."
+fi
+
+IS_RUNNING=`docker ps -q -f "name=seleniumHub" --no-trunc`
+if [[ "$IS_RUNNING" == "" ]]; then
+  sudo docker-compose -f "$COMPOSE_FILE" up -d
+  echo "Docker containers are running using $COMPOSE_FILE!!!"
+else
+  echo "Docker containers are already running!!!"
+fi	
+sleep 60
+
+sudo docker ps -a
+./wait-for-containers.sh
+./waitForGridToBeReady.sh
+
+#java -Xlog:gc*:file=./gc.log:time,uptime \
+#     -DpublishToDB=$PublishToDB \
+#     -DgenerateDocument=docx \
+#	  -Dremote=$REMOTE \
+#     -DremoteURL=http://localhost:4444/wd/hub \
+#     -cp "$CLASSPATH" \
+#     org.testng.TestNG \
+#     -suitethreadpoolsize 3 \
+#     $Plan_Path$Test_Plan.xml
+#     -DgenerateDocument=docx \
+# export SELENIUM_REMOTE_URL=http://localhost:4444/wd/hub
+
+SELENIUM_REMOTE_URL=http://localhost:4444 \
+java -Xlog:gc*:file=./gc.log:time,uptime \
+	 -DpublishToDB=$PublishToDB \
+	 -Dremote=$REMOTE \
+     -cp "$CLASSPATH" \
+     org.testng.TestNG \
+     $Plan_Path$Test_Plan.xml
+     
+echo "Tests Completed"     
+#groupId="$(xml_grep '/project/groupId' pom.xml --text_only | tr '.' '/')"
+#artifactId="$(xml_grep '/project/artifactId' pom.xml --text_only)"
+#aws s3 cp Reports/ s3://ipc-bucket/test-reports/$groupId/$artifactId --recursive --exclude "*" --include "*.html"
+#sudo docker-compose -f "$COMPOSE_FILE" down
+```
+
+### Step 4: Shell Command Script
+```bash
+free -h
+echo "Build number: $BUILD_NUMBER"
+# Instance-ID of the *same* EC2 host
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+echo "Instance ID: $INSTANCE_ID"
+
+COMPOSE_FILE="compose7.yml"
+
+docker-compose -f "$COMPOSE_FILE" logs >> ./log_$INSTANCE_ID.log
+aws s3 cp ./gc.log s3://ipc-bucket/instancsLogs/$INSTANCE_ID/$BUILD_NUMBER/gcLogs/
+aws s3 cp ./log_$INSTANCE_ID.log s3://ipc-bucket/instancsLogs/$INSTANCE_ID/$BUILD_NUMBER/dockerlogs/
+
+if [[ "$PublishToDB" == "true" ]]; then
+    aws s3 cp ./springbootApp.log s3://ipc-bucket/instancsLogs/$INSTANCE_ID/$BUILD_NUMBER/springbootLogs/
+    aws s3 cp ./S3Log.log s3://ipc-bucket/instancsLogs/$INSTANCE_ID/$BUILD_NUMBER/S3Logs/
+fi
+
+groupId="$(xml_grep '/project/groupId' pom.xml --text_only | tr '.' '/')"
+artifactId="$(xml_grep '/project/artifactId' pom.xml --text_only)"
+aws s3 cp Reports/ s3://ipc-bucket/test-reports/$groupId/$artifactId --recursive --exclude "*" --include "*.html"
+```
+

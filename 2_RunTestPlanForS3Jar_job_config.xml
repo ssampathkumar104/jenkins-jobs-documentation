@@ -1,0 +1,461 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Execution of test plan from S3 Jar Files&#xd;
+</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>1</daysToKeep>
+        <numToKeep>30</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+        <removeLastBuild>false</removeLastBuild>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty plugin="gitlab-plugin@1.9.13">
+      <gitLabConnection>GitLabOxfordConnextion</gitLabConnection>
+      <jobCredentialId></jobCredentialId>
+      <useAlternativeCredential>false</useAlternativeCredential>
+    </com.dabsquared.gitlabjenkins.connection.GitLabConnectionProperty>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@338.va_0a_b_50e29397">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>Project</name>
+          <description>Select the required Project</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>ln-ia-testscripts-0.3</string>
+              <string>ln-ia-testscripts-0.2</string>
+              <string>ln-ia-testscripts</string>
+              <string>xylem-testscripts-pw</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>Plan_Path</name>
+          <description>Select a path of the Test Plan</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>standard/industries/automotive/plans/</string>
+              <string>standard/industries/automotive/plans2/</string>
+              <string>standard/industries/industrialEnterprise/plans/</string>
+              <string>standard/industries/industrialEnterprise/plans2/</string>
+              <string>standard/industries/aerospaceDefense/plans/</string>
+              <string>standard/industries/aerospaceDefense/plans2/</string>
+              <string>standard/industries/processMining/plans/</string>
+              <string>ln/Common/plan/</string>
+              <string>plan/</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>Test_Plan</name>
+          <description>Provide Test Plan name, without .xml extension
+Note: Suite Name and Test Plan Name should be the same</description>
+          <defaultValue>PlaywrightPOC</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.8.9">
+          <name>Email_Id</name>
+          <description>Logged in user email Id.</description>
+          <randomName>choice-parameter-7653517598406</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1402.v94c9ce464861">
+              <script>
+def email = hudson.model.User.current()
+      ?.getProperty(hudson.tasks.Mailer.UserProperty)
+      ?.getAddress()
+
+return [
+  email ?: &apos;sampath.sankati@infor.com&apos;
+]</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1402.v94c9ce464861">
+              <script>def email = hudson.model.User.current()
+      ?.getProperty(hudson.tasks.Mailer.UserProperty)
+      ?.getAddress()
+
+return [
+  email ?: &apos;sampath.sankati@infor.com&apos;,
+  &apos;raj.yenne@infor.com&apos;,
+  &apos;manideep.parimi@infor.com&apos;,
+  &apos;bhargav.seetha@infor.com&apos;,
+  &apos;samidha.seelam@infor.com&apos;,
+  &apos;akshaya.rontala@infor.com&apos;,
+  &apos;radha.anyam@infor.com&apos;,
+  &apos;santosh.manyam@infor.com&apos;,
+  &apos;srinivas.almajipur@infor.com&apos;
+]
+</script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>2_RunTestPlanForS3Jar</projectName>
+          <projectFullName>2_RunTestPlanForS3Jar</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters></referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>PublishToDB</name>
+          <description>Select &apos;True&apos; if you want the results pushed to DB; leave it &apos;False&apos; for a dry‑run.</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>false</string>
+              <string>true</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>Branch</name>
+          <description>Name of the Branch</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>21.10.2025</string>
+              <string>newBranch</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>ec2-cloud</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.plugins.groovy.SystemGroovy plugin="groovy@537.v741a_5a_f1b_581">
+      <source class="hudson.plugins.groovy.StringSystemScriptSource">
+        <script plugin="script-security@1402.v94c9ce464861">
+          <script>System.clearProperty(&quot;hudson.model.DirectoryBrowserSupport.CSP&quot;)
+System.setProperty(&quot;hudson.model.DirectoryBrowserSupport.CSP&quot;, &quot;default-src * &apos;unsafe-inline&apos; &apos;unsafe-eval&apos;; script-src * &apos;unsafe-inline&apos; &apos;unsafe-eval&apos;; connect-src * &apos;unsafe-inline&apos;; img-src * data: blob: &apos;unsafe-inline&apos;; frame-src *; style-src * &apos;unsafe-inline&apos;;&quot;)</script>
+          <sandbox>false</sandbox>
+        </script>
+      </source>
+    </hudson.plugins.groovy.SystemGroovy>
+    <hudson.tasks.Shell>
+      <command>echo &quot;Host IP : $(curl http://checkip.amazonaws.com)&quot;
+# Instance‑ID of the *same* EC2 host
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+echo &quot;Instance ID : $INSTANCE_ID&quot;
+java --version
+ 
+# docker info
+docker-compose --version
+groups $(whoami) 
+sudo usermod -aG docker $(whoami)
+
+if [[ &quot;$PublishToDB&quot; == &quot;true&quot; ]]; then
+    echo &quot;Killing any previous Spring Boot app instance...&quot;
+    pkill -f ica-test-reporting-0.0.1-SNAPSHOT.jar || true
+    
+    aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/testautomation/ica-test-reporting/0.0.10/0.0.1-SNAPSHOT/ica-test-reporting-0.0.1-SNAPSHOT.jar .
+
+    echo &quot;Starting Spring Boot app in background...&quot;
+    #nohup java -jar ica-test-reporting-0.0.1-SNAPSHOT.jar &gt; springbootApp.log 2&gt;&amp;1 &amp;
+    java -DEC2_INSTANCE_ID=&quot;$INSTANCE_ID&quot; -jar ica-test-reporting-0.0.1-SNAPSHOT.jar &gt; springbootApp.log 2&gt;&amp;1 &amp;
+    sleep 5
+    echo &quot;Spring Boot app started. Running next Java command...&quot;
+fi</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command># Present Working Directory
+pwd
+# Create required directories
+mkdir -p OutputData Reports downloads lib lib-pw 
+chmod 777 ./downloads
+chown ec2-user:ec2-user /home/ec2-user/jenkins_tmp
+# Sync libraries from S3
+aws s3 sync s3://ipc-bucket/lib/ ./lib
+aws s3 sync s3://ipc-bucket/lib-pw/ ./lib-pw
+
+# Copy helper scripts
+cp /home/ec2-user/wait-for-containers.sh .
+cp /home/ec2-user/waitForDockerToBeActive.sh .
+cp /home/ec2-user/waitForContainerDToBeActive.sh .
+aws s3 cp s3://ipc-bucket/dockerComposeFiles/waitForGridToBeReady.sh .
+sudo dos2unix waitForGridToBeReady.sh
+sudo chmod +x waitForGridToBeReady.sh
+
+# Download docker compose file
+aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/testautomation/inforTestAutomation/0.0.10/0.0.10/inforTestAutomation-0.0.10.jar ./lib/.
+#aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/testautomation/inforTestAutomation-pw/0.0.10/0.0.1/inforTestAutomation-pw-0.0.1.jar ./lib-pw/.
+aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/testautomation/inforTestAutomation-pw/0.0.11/0.0.2/inforTestAutomation-pw-0.0.2.jar ./lib-pw/.
+
+aws s3 cp s3://ipc-bucket/compose7.yml .
+
+branch=&quot;$Branch&quot;
+
+# Project-specific artifact logic
+if [ &quot;$Project&quot; == &apos;ln-ia-testscripts&apos; ]; then
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.1/newBranch/0.0.1-SNAPSHOT/ln-ia-testscripts-0.1-0.0.1-SNAPSHOT.jar .
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.1/newBranch/0.0.1-SNAPSHOT/pom.xml .
+  jar xf ln-ia-testscripts-0.1-0.0.1-SNAPSHOT.jar
+fi
+
+if [ &quot;$Project&quot; == &apos;ln-ia-testscripts-0.2&apos; ]; then
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.2/$branch/0.0.2-SNAPSHOT/ln-ia-testscripts-0.2-0.0.2-SNAPSHOT.jar .
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.2/$branch/0.0.2-SNAPSHOT/pom.xml .
+  jar xf ln-ia-testscripts-0.2-0.0.2-SNAPSHOT.jar
+fi
+
+if [ &quot;$Project&quot; == &apos;ln-ia-testscripts-0.3&apos; ]; then
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.3/21.10.2025/0.0.2-SNAPSHOT/ln-ia-testscripts-0.3-0.0.2-SNAPSHOT.jar .
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/ln-ia-testscripts-0.3/21.10.2025/0.0.2-SNAPSHOT/pom.xml .
+  jar xf ln-ia-testscripts-0.3-0.0.2-SNAPSHOT.jar
+fi
+
+if [ &quot;$Project&quot; == &apos;xylem-testscripts-pw&apos; ]; then
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/xylem-testscripts-pw/main/0.0.2-SNAPSHOT/xylem-testscripts-pw-0.0.2-SNAPSHOT.jar .
+  aws s3 cp s3://ipc-bucket/infor-artifact/com/infor/test/xylem-testscripts-pw/main/0.0.2-SNAPSHOT/pom.xml .
+  jar xf xylem-testscripts-pw-0.0.2-SNAPSHOT.jar
+fi
+
+
+
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>echo &quot;Restarting containerd...&quot;
+whoami
+#sudo systemctl restart containerd
+sudo systemctl is-active containerd || sudo systemctl start containerd
+sleep 60
+echo &quot;Waiting for containerd to be active...&quot;
+timeout 180 ./waitForContainerDToBeActive.sh 
+
+echo &quot;Restarting Docker...&quot;
+#sudo systemctl restart docker
+sudo systemctl is-active docker || sudo systemctl start docker
+sleep 60
+echo &quot;Waiting for Docker to be active...&quot;
+timeout 180 ./waitForDockerToBeActive.sh
+
+echo &quot;Final status check:&quot;
+sudo systemctl status docker
+sudo systemctl status containerd
+
+
+COMPOSE_FILE=&quot;compose7.yml&quot;
+sudo docker-compose -f &quot;$COMPOSE_FILE&quot; down -v
+## Select yml based on the project
+if [ &quot;$Project&quot; == &quot;ln-ia-testscripts&quot; ] || [ &quot;$Project&quot; == &quot;ln-ia-testscripts-0.2&quot; ]; then
+#  COMPOSE_FILE=&quot;dockerCompose2_New.yml&quot;
+#  COMPOSE_FILE=&quot;docker-compose-full-distributed-grid-pw-3.yml&quot;
+  EXECUTION_TYPE=&quot;SELENIUM&quot;
+  CLASSPATH=&quot;.:lib/*&quot;
+  REMOTE=&quot;true&quot;
+  
+fi
+
+if [ &quot;$Project&quot; == &apos;ln-ia-testscripts-0.3&apos; ]; then
+  #COMPOSE_FILE=&quot;docker-compose-full-distributed-grid-pw-3.yml&quot;
+  EXECUTION_TYPE=&quot;PLAYWRIGHT&quot;
+  CLASSPATH=&quot;.:lib-pw/*&quot;
+  REMOTE=&quot;false&quot;
+fi
+
+echo &quot;Execution Type  : $EXECUTION_TYPE&quot;
+echo &quot;Classpath       : $CLASSPATH&quot;
+
+### Removes the containers that are in exited state &amp; created but not started state.
+sudo docker ps -a
+containers=$(docker ps -a -f status=exited -f status=created -q)
+if [ -n &quot;$containers&quot; ]; then
+  docker rm $containers
+else
+  echo &quot;No containers to remove.&quot;
+fi
+
+IS_RUNNING=`docker ps -q -f &quot;name=seleniumHub&quot; --no-trunc`
+if [[ &quot;$IS_RUNNING&quot; == &quot;&quot; ]]; then
+  sudo docker-compose -f &quot;$COMPOSE_FILE&quot; up -d
+  echo &quot;Docker containers are running using $COMPOSE_FILE!!!&quot;
+else
+  echo &quot;Docker containers are already running!!!&quot;
+fi	
+sleep 60
+
+sudo docker ps -a
+./wait-for-containers.sh
+./waitForGridToBeReady.sh
+
+#java -Xlog:gc*:file=./gc.log:time,uptime \
+#     -DpublishToDB=$PublishToDB \
+#     -DgenerateDocument=docx \
+#	  -Dremote=$REMOTE \
+#     -DremoteURL=http://localhost:4444/wd/hub \
+#     -cp &quot;$CLASSPATH&quot; \
+#     org.testng.TestNG \
+#     -suitethreadpoolsize 3 \
+#     $Plan_Path$Test_Plan.xml
+#     -DgenerateDocument=docx \
+# export SELENIUM_REMOTE_URL=http://localhost:4444/wd/hub
+
+SELENIUM_REMOTE_URL=http://localhost:4444 \
+java -Xlog:gc*:file=./gc.log:time,uptime \
+	 -DpublishToDB=$PublishToDB \
+	 -Dremote=$REMOTE \
+     -cp &quot;$CLASSPATH&quot; \
+     org.testng.TestNG \
+     $Plan_Path$Test_Plan.xml
+     
+echo &quot;Tests Completed&quot;     
+#groupId=&quot;$(xml_grep &apos;/project/groupId&apos; pom.xml --text_only | tr &apos;.&apos; &apos;/&apos;)&quot;
+#artifactId=&quot;$(xml_grep &apos;/project/artifactId&apos; pom.xml --text_only)&quot;
+#aws s3 cp Reports/ s3://ipc-bucket/test-reports/$groupId/$artifactId --recursive --exclude &quot;*&quot; --include &quot;*.html&quot;
+#sudo docker-compose -f &quot;$COMPOSE_FILE&quot; down</command>
+      <configuredLocalRules/>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>Reports/*</artifacts>
+      <allowEmptyArchive>false</allowEmptyArchive>
+      <onlyIfSuccessful>false</onlyIfSuccessful>
+      <fingerprint>false</fingerprint>
+      <defaultExcludes>true</defaultExcludes>
+      <caseSensitive>true</caseSensitive>
+      <followSymlinks>false</followSymlinks>
+    </hudson.tasks.ArtifactArchiver>
+    <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@1933.v45cec755423f">
+      <recipientList>$Email_Id</recipientList>
+      <configuredTriggers>
+        <hudson.plugins.emailext.plugins.trigger.PreBuildTrigger>
+          <email>
+            <recipientList>$Email_Id</recipientList>
+            <subject>${JOB_NAME} : ${BUILD_NUMBER} - $Test_Plan </subject>
+            <body>Test Plan: $Plan_Path$Test_Plan.xml is triggered. Below are the details.
+
+Jenkins Job : $PROJECT_NAME - Build # $BUILD_NUMBER -  ${BUILD_STATUS}
+
+Post-execution notification will be sent along with the results.</body>
+            <recipientProviders>
+              <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+            </recipientProviders>
+            <attachmentsPattern></attachmentsPattern>
+            <attachBuildLog>false</attachBuildLog>
+            <compressBuildLog>false</compressBuildLog>
+            <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+            <contentType>text/plain</contentType>
+          </email>
+        </hudson.plugins.emailext.plugins.trigger.PreBuildTrigger>
+        <hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+          <email>
+            <recipientList>$Email_Id</recipientList>
+            <subject>${JOB_NAME} : ${BUILD_NUMBER} - $Test_Plan </subject>
+            <body>Execution for Test Plan: $Plan_Path$Test_Plan.xml is completed. Below are the details.
+
+Jenkins Job : $PROJECT_NAME - Build # $BUILD_NUMBER -  ${BUILD_STATUS}
+
+Check and download the report from the console output at $BUILD_URL
+
+${FILE,path=&quot;filename.txt&quot;}</body>
+            <recipientProviders>
+              <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+            </recipientProviders>
+            <attachmentsPattern>Reports/*.csv</attachmentsPattern>
+            <attachBuildLog>false</attachBuildLog>
+            <compressBuildLog>false</compressBuildLog>
+            <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+            <contentType>text/plain</contentType>
+          </email>
+        </hudson.plugins.emailext.plugins.trigger.AlwaysTrigger>
+      </configuredTriggers>
+      <contentType>text/plain</contentType>
+      <defaultSubject>${JOB_NAME} : ${BUILD_NUMBER} - $Test_Plan </defaultSubject>
+      <defaultContent>Build URL: ${BUILD_URL}
+Result: ${BUILD_STATUS}</defaultContent>
+      <attachmentsPattern>S3Log.log,springbootApp.log</attachmentsPattern>
+      <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+      <postsendScript>$DEFAULT_POSTSEND_SCRIPT</postsendScript>
+      <attachBuildLog>false</attachBuildLog>
+      <compressBuildLog>false</compressBuildLog>
+      <replyTo>$Email_Id</replyTo>
+      <from>smtpcheck7892@gmail.com</from>
+      <saveOutput>false</saveOutput>
+      <disabled>false</disabled>
+      <throttlingEnabled>false</throttlingEnabled>
+    </hudson.plugins.emailext.ExtendedEmailPublisher>
+    <org.jenkinsci.plugins.postbuildscript.PostBuildScript plugin="postbuildscript@3.4.1-695.vf6b_0b_8053979">
+      <config>
+        <scriptFiles/>
+        <groovyScripts/>
+        <buildSteps>
+          <org.jenkinsci.plugins.postbuildscript.model.PostBuildStep>
+            <results>
+              <string>SUCCESS</string>
+            </results>
+            <role>BOTH</role>
+            <buildSteps>
+              <hudson.tasks.Shell>
+                <command>free -h
+echo &quot;Build number: $BUILD_NUMBER&quot;
+# Instance-ID of the *same* EC2 host
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+echo &quot;Instance ID: $INSTANCE_ID&quot;
+
+COMPOSE_FILE=&quot;compose7.yml&quot;
+
+docker-compose -f &quot;$COMPOSE_FILE&quot; logs &gt;&gt; ./log_$INSTANCE_ID.log
+aws s3 cp ./gc.log s3://ipc-bucket/instancsLogs/$INSTANCE_ID/$BUILD_NUMBER/gcLogs/
+aws s3 cp ./log_$INSTANCE_ID.log s3://ipc-bucket/instancsLogs/$INSTANCE_ID/$BUILD_NUMBER/dockerlogs/
+
+if [[ &quot;$PublishToDB&quot; == &quot;true&quot; ]]; then
+    aws s3 cp ./springbootApp.log s3://ipc-bucket/instancsLogs/$INSTANCE_ID/$BUILD_NUMBER/springbootLogs/
+    aws s3 cp ./S3Log.log s3://ipc-bucket/instancsLogs/$INSTANCE_ID/$BUILD_NUMBER/S3Logs/
+fi
+
+groupId=&quot;$(xml_grep &apos;/project/groupId&apos; pom.xml --text_only | tr &apos;.&apos; &apos;/&apos;)&quot;
+artifactId=&quot;$(xml_grep &apos;/project/artifactId&apos; pom.xml --text_only)&quot;
+aws s3 cp Reports/ s3://ipc-bucket/test-reports/$groupId/$artifactId --recursive --exclude &quot;*&quot; --include &quot;*.html&quot;
+</command>
+                <configuredLocalRules/>
+              </hudson.tasks.Shell>
+            </buildSteps>
+            <stopOnFailure>false</stopOnFailure>
+          </org.jenkinsci.plugins.postbuildscript.model.PostBuildStep>
+        </buildSteps>
+        <markBuildUnstable>false</markBuildUnstable>
+      </config>
+    </org.jenkinsci.plugins.postbuildscript.PostBuildScript>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.49">
+      <patterns class="empty-list"/>
+      <deleteDirs>false</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>true</cleanWhenUnstable>
+      <cleanWhenFailure>true</cleanWhenFailure>
+      <cleanWhenNotBuilt>true</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>false</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.buildnamesetter.BuildNameSetter plugin="build-name-setter@2.5.1">
+      <template>#${BUILD_NUMBER} - ${Test_Plan}</template>
+      <descriptionTemplate></descriptionTemplate>
+      <runAtStart>true</runAtStart>
+      <runAtEnd>true</runAtEnd>
+    </org.jenkinsci.plugins.buildnamesetter.BuildNameSetter>
+  </buildWrappers>
+</project>
